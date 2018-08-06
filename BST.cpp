@@ -18,11 +18,15 @@ void BST::del()
 		else break;
 	}
 	root = nullptr;
+	num = 0;
 }
 
 void BST::Write(ostream & it) const
 {
 	Stack s;
+	if (!root) throw ErrEmpty();
+	Set::Write(it);
+	it << " Elements of the set: ";
 	Elem* curr = root;
 	while (true) {
 		while (curr) {
@@ -43,7 +47,10 @@ void BST::Read(istream & ut)
 	do {
 		int c;
 		ut >> c;
-		Insert(c);
+		try {
+			Insert(c);
+		}
+		catch (ErrElExists g) {}
 	} while (cin.get() != '\n');
 }
 
@@ -83,6 +90,7 @@ void BST::DeleteNode(Elem * fath, Elem* br)						//deleting a node whilst preser
 	else if (br == fath->left) fath->left = chng;
 	else fath->right = chng;
 	delete br;
+	num--;
 }
 
 int BST::Min()
@@ -125,33 +133,41 @@ BST & BST::RemoveRange(int a, int b)									//based on the inorder algorithm fo
 	if (a > Max()) return *this;
 	if (b < Min()) return *this;
 	Stack s;
-	Elem* curr, *fath = root, *br; 
-	if (b < root->key) curr = root->left;
-	else if (a > root->key) curr = root->right;
+	Elem* curr, *fath = root, *br, *sp=nullptr; 
+	if (b < root->key) {
+		curr = root->left;
+		s.PUSH(root);
+	}
+	else if (a > root->key) {
+		curr = root->right;
+		s.PUSH(root);
+	}
 	else {
 		curr = root;
 		fath = nullptr;
 	}
-	while (curr && curr->key < a) {
-		fath = curr;
-		curr = curr->right;
-	}
 	while (true) {
-		while (curr && curr->key>=a && curr->key<=b) {
-			s.PUSH(fath);
-			fath = curr;
+		while (curr) {
+			s.PUSH(curr);
 			curr = curr->left;
 		}												
-		if (!s.EMPTY() && s.TOP()<=b) {
+		if (!s.EMPTY() && s.TOP() <= b) {
 			fath = s.Fath();
 			curr = s.POP();
-			while (curr && curr->key >= a && curr->key <= b) {
-				br = curr;
-				DeleteNode(fath, br);
-				if (fath)
-					if (fath->key > a) curr = fath->left;
-					else curr = fath->right;
-				else curr = root;
+			if (curr->key >= a && curr->key <= b) {
+				while (curr && curr->key >= a && curr->key <= b) {
+					br = curr;
+					if (sp && sp->right && sp->right->key == br->key) fath = sp;
+					DeleteNode(fath, br);
+					if (fath)
+						if (fath->key > a) curr = fath->left;
+						else curr = fath->right;
+					else curr = root;
+				}
+			}
+			else {
+				if (curr->right && curr->right->key >= a) sp = curr;
+				curr = curr->right;
 			}
 		}
 		else break;
@@ -161,14 +177,13 @@ BST & BST::RemoveRange(int a, int b)									//based on the inorder algorithm fo
 
 BST * BST::Intersection(const BST & bst) const								//based on the inorder algorithm for tree traversal
 {
-	if (!root || !bst.root) throw ErrIntersection();
 	Stack s1, s2;
 	Elem* curr1 = root, *curr2 = bst.root;
 	BST* resTree=new BST();
 	int cap = 50;
 	int* arr = new int[cap];
 	int* p;
-	int low = 0, high, mid, n = 0;
+	int low = 0, high, n = 0;
 	bool nel1 = true, nel2 = true, exists = false;				
 	while (true) {
 		while (curr1 && nel1) {
@@ -211,20 +226,34 @@ BST * BST::Intersection(const BST & bst) const								//based on the inorder alg
 		}
 	}
 	if (exists) {														//making a balanced tree out of the resulting array
-		high = n - 1;
-		mid = (low + high) / 2;
-		resTree->Insert(arr[mid]);
-		if (!((low + high) % 2)) resTree->Insert(arr[mid + 1]);
-		while (high > mid && low < mid) {
-			try {													
-				resTree->Insert(arr[low]);
-			} catch(ErrElExists &g){}
-			try {
-				resTree->Insert(arr[high]);
-			} catch (ErrElExists &g){}
-				high--;
-				low++;
-		}
+		int* s1 = new int[n], sb1 = 0;
+		int* s2 = new int[n], sb2 = 0;
+		s1[sb1++] = 0;
+		s2[sb2++] = n - 1;
+		do {
+			low = s1[--sb1];
+			high = s2[--sb2];
+			if (low != high) {
+				try {
+					resTree->Insert(arr[low]);
+				}
+				catch (ErrElExists g) {}
+				try {
+					resTree->Insert(arr[high]);
+				}
+				catch (ErrElExists g) {}
+				s1[sb1++] = (low + high) / 2 - 1;
+				s2[sb2++] = (low + high) / 2 + 1;
+			}
+			else {
+				try {
+					resTree->Insert(arr[high]);
+				}
+				catch (ErrElExists g) {}
+			}
+		} while (sb1<0 && sb2<0);
+		delete s1;
+		delete s2;
 	}
 	return resTree;
 }
