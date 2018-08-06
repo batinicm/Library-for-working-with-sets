@@ -15,7 +15,10 @@ void List::Read(istream & ut){
 		do {
 			int b;
 			ut >> b;
-			Insert(b);
+			try{
+				Insert(b);
+			}
+			catch (ErrElExists g) {}
 		} while (cin.get() != '\n');
 }
 
