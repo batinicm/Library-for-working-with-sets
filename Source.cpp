@@ -98,7 +98,7 @@ int main() {
 					} while (!fajl.eof());
 					fajl.close();
 					break;
-				case 2: cout << " Enter the serial number of a set: ";
+				case 2: cout << " Enter the numbers: ";
 					cin >> *arr[y - 1];
 					break;
 				default: cout << " Invalid choice!" << endl << endl;

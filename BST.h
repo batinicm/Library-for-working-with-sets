@@ -29,8 +29,11 @@ public:
 	BST& operator=(const BST& b) = delete;
 	bool Belongs(int x) const override {									
 		Elem* fath = Find(x);
-		if (fath->left && x == fath->left->key) return true;				
-		if (fath->right && x == fath->right->key) return true;
+		if (fath) {
+			if (fath->left && x == fath->left->key) return true;
+			if (fath->right && x == fath->right->key) return true;
+		}
+		else if (x == root->key) return true;
 		return false;														
 	}
 	BST& Insert(int x) override {
@@ -41,7 +44,10 @@ public:
 			if (x < fath->key) fath->left = new Elem(x);
 			else fath->right = new Elem(x);
 		}
-		else root = new Elem(x);
+		else
+			if (root && x == root->key) throw new ErrElExists(x);
+			else root = new Elem(x);
+			num++;
 		return *this;
 	}
 	BST& Remove(int x) override;
@@ -77,7 +83,7 @@ public:
 		return p;
 	}
 	bool EMPTY() const {
-		return sp == nullptr || sp->node == nullptr;
+		return sp == nullptr;
 	}
 	int TOP() const { 
 		return sp->node->key; 

@@ -8,40 +8,35 @@
 
 
 double* Formation(List * l, List* lpom, BST* b, BST *bpom, int tr) {						//formation of a list and bst made up of same numbers so that
-	PerformanceCalculator pc;																//the performance measurements are accurate
+	PerformanceCalculator pc;
+	MTRand_int32 irand;																		//the performance measurements are accurate
 	double* avg = new double[2];
 	avg[0] = 0; avg[1] = 0;
 	int* arr = new int[tr];
 	for (int k = 0; k < 3; k++) {
-	for(int i=0; i<tr; i++) arr[i]= (tr + 100)*rand() / ((double)RAND_MAX);
+	for(int i=0; i<tr; i++) arr[i]= irand();
 		pc.start();
 		for (int j = 0; j<tr; j++) {
 			try {
-				l->Insert(arr[j]);									
+				if (k == 1) lpom->Insert(arr[j]);
+				else l->Insert(arr[j]);
 			}
 			catch (ErrElExists g) {}
 		}
 		pc.stop();
 		avg[0] += pc.elapsedMillis();
-		if (k == 1) {
-			lpom = l;
-			l->DeleteAll();
-		}
-		else if (k != 2) l->DeleteAll();									
+		if (k == 0) l->DeleteAll();
 		pc.start();
 		for (int j = 0; j<tr; j++) {
 			try {
-				b->Insert(arr[j]);
+				if (k == 1) bpom->Insert(arr[j]);
+				else b->Insert(arr[j]);
 			}
 			catch (ErrElExists g) {}
 		}
 		pc.stop();
 		avg[1] += pc.elapsedMillis();
-		if (k == 1) {
-			bpom = b;
-			b->DeleteAll();
-		}
-		else if (k != 2) b->DeleteAll();
+		if (k == 0) b->DeleteAll();
 	}
 	delete arr;
 	avg[0] /= 3;
@@ -95,23 +90,24 @@ double Membership(Set* s, int a) {
 }
 
 void WriteAll(ostream& it, double* arr) {
-	for (int k = 0; k < 6; k++) {
-		it << setprecision(3)<< setw(6) << arr[k]<<' ';
-		if (k == 5) it << endl;
+	for (int k = 0; k < 5; k++) {
+		it << setprecision(5)<< setw(10) << arr[k]<<' ';
+		if (k == 4) it << endl;
 	}
 }
 
 void Performances() {										
 
+	string titles[] = { "Set size","formation","insertion","removal","search","intersection" };
 	int vr[] = { 200,500,1000,10000,100000,1000000 };
 	int gr[] = {150,400,850,9000,98000,999500};
 	double forml[6], insl[6], reml[6], searchl[6], interl[6];			//arrays of results for individual samples -- linked list
 	double formt[6], inst[6], remt[6], searcht[6], intert[6];			//arrays of results for individual samples -- BST
 	PerformanceCalculator pc;
 
-	for (int i = 0; i < 6; i++) {
-		List *l = new List(), *lpom=0;
-		BST *b = new BST(), *bpom=0;
+	for (int i = 0; i < 5; i++) {
+		List *l = new List(), *lpom= new List();
+		BST *b = new BST(), *bpom=new BST();
 		double* avg;
 		double avg1 = 0;
 		avg = Formation(l, lpom, b, bpom, vr[i]);
@@ -153,14 +149,14 @@ void Performances() {
 		delete lpom;
 		delete b;
 		delete bpom;
+		cout << endl;
 	}
-	string titles[] = { "Number of elements","formation","insertion","removal","search","set operation" };
 	for (int k = 0; k < 6; k++) {							//list performance print
 		cout << setw(15) << titles[k] << ' ';
 		switch (k) {
-		case 0: for (int k = 0; k < 6; k++) {
-			cout << vr[k] << setw(6);
-			if (k == 5) cout << endl;
+		case 0: for (int k = 0; k < 5; k++) {
+			cout << setw(11) << vr[k] ;
+			if (k == 4) cout << endl;
 		} 
 				break;
 		case 1: WriteAll(cout, forml); break;
@@ -171,12 +167,13 @@ void Performances() {
 		default: break;
 		}
 	}
+	cout << endl << endl;
 	for (int k = 0; k < 6; k++) {							//bst performance print
 		cout << setw(15) << titles[k] << ' ';
 		switch (k) {
 		case 0: for (int k = 0; k < 6; k++) {
-			cout << vr[k] << setw(6);
-			if (k == 5) cout << endl;
+			cout << setw(11) << vr[k];
+			if (k == 4) cout << endl;
 		}
 				break;
 		case 1: WriteAll(cout, formt); break;
@@ -187,4 +184,5 @@ void Performances() {
 		default: break;
 		}
 	}
+	cout << endl;
 }
