@@ -36,12 +36,6 @@ public:
 		return it << "*** The set is empty! ***\n";
 	}
 };
-class ErrIntersection {
-public:
-	friend ostream& operator<<(ostream& it, const ErrIntersection&) {
-		return it << "*** Unable to find the intersection of these sets! ***\n";
-	}
-};
 
 class ErrFile {
 public:
